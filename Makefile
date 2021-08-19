@@ -4,10 +4,10 @@ compile:
 	iverilog \
 	-I ./RTL \
 	-y ./RTL \
-	-o ./build/xcore_tb ./TB/xcore_tb.v
+	-o ./build/xcore_tb.o ./TB/xcore_tb.v
 
 simulate:
-	vvp -n ./build/xcore_tb
+	vvp -n ./build/xcore_tb.o
 	mv ./xcore_tb.vcd ./build/xcore_tb.vcd
 
 gtkwave:

@@ -21,7 +21,7 @@ module pc_reg (
 
     always @(posedge clk) begin
         if(ce == `ChipDisable) begin
-            pc <= 32'h00000000;         // 失能状态返回0地址
+            pc <= `InstAddrNop;         // 失能状态返回0地址
         end else begin
             pc <= pc + 4'h4;            // 使能状态返回下一个pc寄存器的地址，因为一个pc地址为32位，如果按字节取址(即pc的移动单位为4位)，因此下一个pc地址需移动四个字节
         end

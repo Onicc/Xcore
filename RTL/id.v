@@ -31,9 +31,11 @@ module id (
     input wire mem_we,                      // 写使能
 
     // 本模块的主要输出
+    output reg [`InstAddrBus] pc_o,
     output reg [`InstBus] inst_o,
     output reg [`RegBus] reg1,          // 与reg1_rdata相同，不过这里是输出
     output reg [`RegBus] reg2,          // 与reg2_rdata相同，不过这里是输出
+    output reg [`RegBus] imm,           // 立即数
     output reg [`RegAddrBus] reg_waddr, // 从指令中解析出来的，用于下一个模块计算完成后存放
     output reg reg_we                   // 是否需要存放至目的寄存器，因为有得指令不需要存储目的值
 );
@@ -42,15 +44,10 @@ module id (
     wire [6:0] funct7 = inst[31:25];
     wire [4:0] shamt = inst[24:20];
 
-    // 保存指令所需的立即数
-    reg [`RegBus] imm;
-    // 指令石是否有效
-    reg instValid;
-
     always @(*) begin
         if(rst == `RstEnable) begin
+            pc_o <= `InstAddrNop;
             inst_o <= `ZeroWord;
-            instValid <= 1'b0;
             imm <= `ZeroWord;
             reg1_re <= `ReadDisable;
             reg2_re <= `ReadDisable;
@@ -60,8 +57,8 @@ module id (
             reg_waddr <= `RegAddrNop;
         end else begin
             // 按照理论值初始化
+            pc_o <= pc;
             inst_o <= inst;
-            instValid <= 1'b0;
             imm <= `ZeroWord;
             reg1_re <= `ReadDisable;
             reg2_re <= `ReadDisable;
@@ -75,13 +72,11 @@ module id (
                 `OP_R: begin
                     case (funct3)
                         `FUNC3_R_ADD, `FUNC3_R_SUB, `FUNC3_R_SLL, `FUNC3_R_SLT, `FUNC3_R_SLTU, `FUNC3_R_XOR, `FUNC3_R_SRL, `FUNC3_R_SRA, `FUNC3_R_OR, `FUNC3_R_AND: begin
-                            instValid <= 1'b1;
                             reg1_re <= `ReadEnable;
                             reg2_re <= `ReadEnable;
                             reg_we <= `WriteEnable;
                         end
                         default: begin
-                            instValid <= 1'b0;
                             reg1_re <= `ReadDisable;
                             reg2_re <= `ReadDisable;
                             reg_we <= `WriteDisable;
@@ -92,19 +87,16 @@ module id (
                 `OP_I: begin
                     case (funct3)
                         `FUNC3_I_ADDI, `FUNC3_I_SLTI, `FUNC3_I_SLTIU, `FUNC3_I_XORI, `FUNC3_I_ORI, `FUNC3_I_ANDI: begin
-                            instValid <= 1'b1;
                             imm <= {{20{inst[31]}}, inst[31:20]};
                             reg1_re <= `ReadEnable;
                             reg_we <= `WriteEnable;
                         end
                         `FUNC3_I_SLLI, `FUNC3_I_SRLI, `FUNC3_I_SRAI: begin
-                            instValid <= 1'b1;
                             imm[4:0] <= shamt;
                             reg1_re <= `ReadEnable;
                             reg_we <= `WriteEnable;
                         end
                         default: begin
-                            instValid <= 1'b0;
                             imm <= `ZeroWord;
                             reg1_re <= `ReadDisable;
                             reg_we <= `WriteDisable;
@@ -119,23 +111,26 @@ module id (
                     case (funct3)
                         `FUNC3_B_BEQ, `FUNC3_B_BNE, `FUNC3_B_BLT, `FUNC3_B_BGE, `FUNC3_B_BLTU, `FUNC3_B_BGEU: begin
                             // input: rs1, rs2, -rd-, imm, pc
-                            
+                            imm <= {{20{inst[31]}}, inst[7], inst[30:25], inst[11:8], 1'b0};
+                            reg1_re <= `ReadEnable;
+                            reg2_re <= `ReadEnable;
                         end
                         default: begin
+                            imm <= `ZeroWord;
+                            reg1_re <= `ReadDisable;
+                            reg2_re <= `ReadDisable;
                         end
                     endcase
                 end
 
                 `OP_L: begin
                     case (funct3)
-                        `FUNC3_L_LB, `FUNC3_L_LB, `FUNC3_L_LB, `FUNC3_L_LB, `FUNC3_L_LB: begin
-                            instValid <= 1'b1;
+                        `FUNC3_L_LB, `FUNC3_L_LH, `FUNC3_L_LW, `FUNC3_L_LBU, `FUNC3_L_LHU: begin
                             imm <= {{20{inst[31]}}, inst[31:20]};
                             reg1_re <= `ReadEnable;
                             reg_we <= `WriteEnable;
                         end
                         default: begin
-                            instValid <= 1'b0;
                             imm <= `ZeroWord;
                             reg1_re <= `ReadDisable;
                             reg_we <= `WriteDisable;
@@ -145,13 +140,11 @@ module id (
 
                 // 一些指令
                 `OP_LUI: begin
-                    instValid <= 1'b1;
                     imm <= {inst[31:12], 12'b0};
                     reg_we <= `WriteEnable;
                 end
                 `OP_AUIPC: begin
-                    instValid <= 1'b1;
-                    imm <= {inst[31:12], 12'b0} + inst;
+                    imm <= {inst[31:12], 12'b0};
                     reg_we <= `WriteEnable;
                 end
                 `OP_JAL: begin
@@ -179,8 +172,6 @@ module id (
                 // 以上都不满足才读当前地址对应寄存器的值
                 reg1 <= reg1_rdata;
             end
-        end else if(reg1_re == `ReadDisable) begin
-            reg1 <= imm;                            // Why? 当为I型指令时，并不是两个操作数都是从寄存器读的，有一个是立即数
         end else begin
             reg1 <= `ZeroWord;
         end
@@ -201,8 +192,6 @@ module id (
                 // 以上都不满足才读当前地址对应寄存器的值
                 reg2 <= reg2_rdata;
             end
-        end else if(reg2_re == `ReadDisable) begin
-            reg2 <= imm;                            // Why? 当为I型指令时，并不是两个操作数都是从寄存器读的，有一个是立即数
         end else begin
             reg2 <= `ZeroWord;
         end

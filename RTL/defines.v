@@ -12,6 +12,8 @@
 
 
 `define InstAddrBus     31:0                // 指令地址总线宽度,可查询2^32条指令
+`define InstAddrNop     32'h00000000
+
 `define InstBus         31:0                // 指令数据总线宽度,每条指令是32位
 `define InstMemNum      131072              // 存放指令的ROM可存储的最大指令数
 `define InstMemNumLog2  17                  // ROM的位数，即地址宽度
@@ -22,6 +24,12 @@
 `define RegBus          31:0                // 寄存器位宽32位
 `define RegAddrNop      5'b00000            // 空寄存器地址
 `define RegNop          32'h00000000        // 空寄存器
+
+`define MemNum          4096                // 有多少个字 一个字MemBus位
+`define MemBus          31:0
+`dafine MemNop          32'h00000000
+`define MemAddrBus      31:0
+`define MemAddrNop      32'h00000000
 
 // opcode部分
 `define OP_R            7'b0110011

@@ -1,2 +1,2 @@
-# Xcore
-RISC-V CPU
+# SRV32I
+A RISC-V CPU

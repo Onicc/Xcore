@@ -46,10 +46,11 @@ module xcore (
     wire [`RegAddrBus] raddr2;
     wire [`RegBus] rdata2;
 
-
+    wire [`InstAddrBus] id_pc_o;
     wire [`InstBus] id_inst_o;
     wire [`RegBus] id_reg1;          // 与reg1_rdata相同，不过这里是输出
     wire [`RegBus] id_reg2;          // 与reg2_rdata相同，不过这里是输出
+    wire [`RegBus] id_imm;          // 与reg2_rdata相同，不过这里是输出
     wire [`RegAddrBus] id_reg_waddr; // 从指令中解析出来的，用于下一个模块计算完成后存放
     wire id_reg_we;                   // 是否需要存放至目的寄存器，因为有得指令不需要存储目的值
     id u_id(
@@ -74,17 +75,20 @@ module xcore (
         .mem_wdata(mem_wdata_o),         // 待写的寄存器的数据
         .mem_we(mem_we_o),                       // 写使能
 
+        .pc_o(id_pc_o),
         .inst_o(id_inst_o),
         .reg1(id_reg1),   
-        .reg2(id_reg2),   
+        .reg2(id_reg2),  
+        .imm(id_imm), 
         .reg_waddr(id_reg_waddr), 
         .reg_we(id_reg_we)
     );
 
-
+    wire [`InstAddrBus] ex_pc;
     wire [`InstBus] ex_inst;
     wire [`RegBus] ex_reg1;
     wire [`RegBus] ex_reg2;
+    wire [`RegBus] ex_imm;
     wire [`RegAddrBus] ex_reg_waddr; // 从指令中解析出来的，用于下一个模块计算完成后存放
     wire ex_reg_we;
     id_ex u_id_ex(
@@ -92,16 +96,20 @@ module xcore (
         .rst(rst),
 
         // 从id中传过来的
+        .id_pc(id_pc_o),
         .id_inst(id_inst),
         .id_reg1(id_reg1),
         .id_reg2(id_reg2),
+        .id_imm(id_imm),
         .id_reg_waddr(id_reg_waddr),
         .id_reg_we(id_reg_we),       
 
         // 本模块的主要输出
+        .ex_pc(ex_pc),
         .ex_inst(ex_inst),
         .ex_reg1(ex_reg1),
         .ex_reg2(ex_reg2),
+        .ex_imm(ex_imm),
         .ex_reg_waddr(ex_reg_waddr),
         .ex_reg_we(ex_reg_we)
     );
@@ -114,9 +122,11 @@ module xcore (
         .rst(rst),
 
         // 从id_ex中传过来的
+        .pc(ex_pc),
         .inst(ex_inst),
         .reg1(ex_reg1),
         .reg2(ex_reg2),
+        .imm(ex_imm),
         .reg_waddr(ex_reg_waddr),
         .reg_we(ex_reg_we),
 
