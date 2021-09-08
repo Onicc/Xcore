@@ -18,12 +18,13 @@ module ex (
     input wire reg_we,                   // 是否需要存放至目的寄存器，因为有得指令不需要存储目的值
 
     // 从ram中传过来的
-    input wire [`MemBus] mem_rdara,
+    input wire [`MemBus] ram_rdata,
 
-    // out of mem
-    output reg mem_we,
-    output reg [`MemAddrBus] mem_wraddr,
-    output reg [`MemBus] mem_wdata,
+    // out of ram ram
+    output reg ram_we,
+    output reg [`MenSelBus] ram_sel,
+    output reg [`MemAddrBus] ram_wraddr,
+    output reg [`MemBus] ram_wdata,
 
     // 执行的结果
     output reg [`RegAddrBus] waddr,     // 待写的寄存器的地址
@@ -38,12 +39,23 @@ module ex (
     always @(*) begin
         if(rst == `RstEnable) begin
             wdata <= `ZeroWord;
-            mem_we <= `WriteDisable;
-            mem_wraddr <= `MemAddrNop;
-            mem_wdata <= `MemNop;
+            ram_we <= `WriteDisable;
+            ram_sel <= `MenSelNop;
+            ram_wraddr <= `MemAddrNop;
+            ram_wdata <= `MemNop;
         end else begin
             we <= reg_we;
             waddr <= reg_waddr;
+            wdata <= `ZeroWord;
+            // 只有S和L指令需要操作RAM，并且这里是马上读取RAM，因此最好一个时钟周期内只更改一次
+            if(op != `OP_S && op != `OP_L) begin    
+                ram_we <= `WriteDisable;
+                ram_sel <= `MenSelNop;
+                ram_wraddr <= `MemAddrNop;
+                ram_wdata <= `MemNop;
+            end else begin
+            end
+
             case (op)
                 `OP_R: begin
                     if((funct7 == 7'b0000000) || (funct7 == 7'b0100000)) begin
@@ -138,6 +150,53 @@ module ex (
                 end
                 
                 `OP_S: begin
+                    ram_we <= `WriteEnable;
+                    ram_wraddr <= reg1 + imm;    // 改为阻塞赋值，需要先读ram再写ram，因为写必须一次写一个字
+                    case(funct3)
+                        `FUNC3_S_SB: begin
+                            ram_wdata <= {4{reg2[7:0]}};
+                            case (ram_wraddr[1:0])
+                                2'b00: begin
+                                    ram_sel <= 4'b0001;
+                                end
+                                2'b01: begin
+                                    ram_sel <= 4'b0010;
+                                end
+                                2'b10: begin
+                                    ram_sel <= 4'b0100;
+                                end
+                                2'b11: begin
+                                    ram_sel <= 4'b1000;
+                                end
+                                default: begin
+                                    ram_sel <= 4'b0000;
+                                end
+                            endcase
+                        end
+                        `FUNC3_S_SH: begin
+                            ram_wdata <= {2{reg2[15:0]}};
+                            case (ram_wraddr[1:0])
+                                2'b00: begin
+                                    ram_sel <= 4'b0011;
+                                end
+                                2'b10: begin
+                                    ram_sel <= 4'b1100;
+                                end
+                                default: begin
+                                    ram_sel <= 4'b0000;
+                                end
+                            endcase
+                        end
+                        `FUNC3_S_SW: begin
+                            ram_wdata <= reg2;
+                            ram_sel <= 4'b1111;
+                        end
+                        default: begin
+                            ram_we <= `WriteDisable;
+                            ram_wdata <= `ZeroWord;
+                            ram_wraddr <= `MemAddrNop;
+                        end
+                    endcase
                 end
 
                 `OP_B: begin
@@ -160,21 +219,25 @@ module ex (
                 end
 
                 `OP_L: begin
-                    mem_wraddr <= reg1 + imm;
+                    // L指令虽然只用到了ram_wraddr，但是也需要将ram的其他接口清空
+                    ram_we <= `WriteDisable;
+                    ram_sel <= `MenSelNop;
+                    ram_wraddr <= reg1 + imm;
+                    ram_wdata <= `MemNop;
                     case(funct3)
                         `FUNC3_L_LB: begin
-                            case (mem_wraddr[1:0])
+                            case (ram_wraddr[1:0])
                                 2'b00: begin
-                                    wdata <= {{24{mem_rdara[7]}}, mem_rdara[7:0]};
+                                    wdata <= {{24{ram_rdata[7]}}, ram_rdata[7:0]};
                                 end
                                 2'b01: begin
-                                    wdata <= {{24{mem_rdara[15]}}, mem_rdara[15:8]};
+                                    wdata <= {{24{ram_rdata[15]}}, ram_rdata[15:8]};
                                 end
                                 2'b10: begin
-                                    wdata <= {{24{mem_rdara[23]}}, mem_rdara[23:16]};
+                                    wdata <= {{24{ram_rdata[23]}}, ram_rdata[23:16]};
                                 end
                                 2'b11: begin
-                                    wdata <= {{24{mem_rdara[31]}}, mem_rdara[31:24]};
+                                    wdata <= {{24{ram_rdata[31]}}, ram_rdata[31:24]};
                                 end
                                 default: begin
                                     wdata <= `ZeroWord; 
@@ -182,12 +245,12 @@ module ex (
                             endcase
                         end
                         `FUNC3_L_LH: begin
-                            case (mem_wraddr[1:0])
+                            case (ram_wraddr[1:0])
                                 2'b00: begin
-                                    wdata <= {{16{mem_rdara[15]}}, mem_rdara[15:0]};
+                                    wdata <= {{16{ram_rdata[15]}}, ram_rdata[15:0]};
                                 end
                                 2'b10: begin
-                                    wdata <= {{16{mem_rdara[31]}}, mem_rdara[31:16]};
+                                    wdata <= {{16{ram_rdata[31]}}, ram_rdata[31:16]};
                                 end
                                 default: begin
                                     wdata <= `ZeroWord; 
@@ -195,21 +258,21 @@ module ex (
                             endcase
                         end
                         `FUNC3_L_LW: begin
-                            wdata <= mem_rdara;
+                            wdata <= ram_rdata;
                         end
                         `FUNC3_L_LBU: begin
-                            case (mem_wraddr[1:0])
+                            case (ram_wraddr[1:0])
                                 2'b00: begin
-                                    wdata <= {24'h000000, mem_rdara[7:0]};
+                                    wdata <= {24'h000000, ram_rdata[7:0]};
                                 end
                                 2'b01: begin
-                                    wdata <= {24'h000000, mem_rdara[15:8]};
+                                    wdata <= {24'h000000, ram_rdata[15:8]};
                                 end
                                 2'b10: begin
-                                    wdata <= {24'h000000, mem_rdara[23:16]};
+                                    wdata <= {24'h000000, ram_rdata[23:16]};
                                 end
                                 2'b11: begin
-                                    wdata <= {24'h000000, mem_rdara[31:24]};
+                                    wdata <= {24'h000000, ram_rdata[31:24]};
                                 end
                                 default: begin
                                     wdata <= `ZeroWord; 
@@ -217,12 +280,12 @@ module ex (
                             endcase
                         end
                         `FUNC3_L_LHU: begin
-                            case (mem_wraddr[1:0])
+                            case (ram_wraddr[1:0])
                                 2'b00: begin
-                                    wdata <= {16'h0000, mem_rdara[15:0]};
+                                    wdata <= {16'h0000, ram_rdata[15:0]};
                                 end
                                 2'b10: begin
-                                    wdata <= {16'h0000, mem_rdara[31:16]};
+                                    wdata <= {16'h0000, ram_rdata[31:16]};
                                 end
                                 default: begin
                                     wdata <= `ZeroWord; 
@@ -231,7 +294,9 @@ module ex (
                         end
                         default: begin
                             wdata <= `ZeroWord;
-                            mem_wraddr <= `MemAddrNop;
+                            ram_we <= `WriteDisable;
+                            ram_wdata <= `ZeroWord;
+                            ram_wraddr <= `MemAddrNop;
                         end
                     endcase
                 end

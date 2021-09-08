@@ -4,22 +4,39 @@ module xcore (
     input wire clk,
     input wire rst
 );
-    // pc reg
+    // ROM
     wire [`InstBus] inst;
     wire [`InstAddrBus] pc;
     wire rom_ce;
+    inst_rom u_inst_rom(
+        .ce(rom_ce),
+        .addr(pc),
+        .inst(inst)
+    );
 
+    // RAM
+    wire ram_we;
+    wire [`MenSelBus] ram_sel;
+    wire [`MemAddrBus] ram_wraddr;
+    wire [`MemBus] ram_wdata;
+    wire [`MemBus] ram_rdata;
+    ram u_ram(
+        .clk(clk),
+        .rst(rst),
+
+        .we(ram_we),
+        .sel(ram_sel),
+        .wraddr(ram_wraddr),
+        .wdata(ram_wdata),
+        .rdata(ram_rdata)
+    );
+
+    // pc
     pc_reg u_pc_reg(
         .clk(clk),
         .rst(rst),
         .pc(pc),
         .ce(rom_ce)
-    );
-
-    inst_rom u_inst_rom(
-        .ce(rom_ce),
-        .addr(pc),
-        .inst(inst)
     );
 
     wire [`InstAddrBus] id_pc;
@@ -129,6 +146,13 @@ module xcore (
         .imm(ex_imm),
         .reg_waddr(ex_reg_waddr),
         .reg_we(ex_reg_we),
+
+        // ram
+        .ram_we(ram_we),
+        .ram_sel(ram_sel),
+        .ram_wraddr(ram_wraddr),
+        .ram_wdata(ram_wdata),
+        .ram_rdata(ram_rdata),
 
         // 执行的结果
         .waddr(ex_waddr),     // 待写的寄存器的地址

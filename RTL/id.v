@@ -26,6 +26,7 @@ module id (
     input wire ex_we,                      // 写使能
 
     // 当指令相邻2时，相邻2的指令读取同一个寄存器，不能从regfile取，需要从访存阶段取到的运算结果
+    // 这里的mem为访存的mem
     input wire [`RegAddrBus] mem_waddr,     // 待写的寄存器的地址
     input wire [`RegBus] mem_wdata,         // 待写的寄存器的数据
     input wire mem_we,                      // 写使能
@@ -105,6 +106,18 @@ module id (
                 end
 
                 `OP_S: begin
+                    case (funct3)
+                        `FUNC3_S_SB, `FUNC3_S_SH, `FUNC3_S_SW: begin
+                            imm <= {{20{inst[31]}}, inst[31:25], inst[11:7]};
+                            reg1_re <= `ReadEnable;
+                            reg2_re <= `ReadEnable;
+                        end
+                        default: begin
+                            imm <= `ZeroWord;
+                            reg1_re <= `ReadDisable;
+                            reg2_re <= `ReadDisable;
+                        end
+                    endcase
                 end
 
                 `OP_B: begin

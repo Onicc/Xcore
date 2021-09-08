@@ -9,6 +9,7 @@
 `define InstInvalid     1'b1
 `define ChipEnable      1'b1
 `define ChipDisable     1'b0
+`define ByteWidth       7:0
 
 
 `define InstAddrBus     31:0                // 指令地址总线宽度,可查询2^32条指令
@@ -27,9 +28,11 @@
 
 `define MemNum          4096                // 有多少个字 一个字MemBus位
 `define MemBus          31:0
-`dafine MemNop          32'h00000000
+`define MemNop          32'h00000000
 `define MemAddrBus      31:0
 `define MemAddrNop      32'h00000000
+`define MenSelBus       3:0
+`define MenSelNop       4'b0000
 
 // opcode部分
 `define OP_R            7'b0110011
@@ -63,9 +66,9 @@
 `define FUNC3_I_SRAI    3'b101              // 立即数算术右移
 
 // S type inst
-`define FUNC3_S_SB      3'b000
-`define FUNC3_S_SH      3'b001
-`define FUNC3_S_SW      3'b010
+`define FUNC3_S_SB      3'b000              // 存字节
+`define FUNC3_S_SH      3'b001              // 存半字
+`define FUNC3_S_SW      3'b010              // 存字
 
 // B type inst
 `define FUNC3_B_BEQ     3'b000              // 相等时分支
