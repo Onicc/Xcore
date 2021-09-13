@@ -52,4 +52,5 @@ A RISC-V CPU
     I jalr
 添加模块：
     ctrl.v
+    csr_reg.v
 Q：跳转指令跳转时是执行到了ex，下一条流水线已经取址了，因此需要暂停流水线

@@ -33,6 +33,7 @@
 `define RegNumLog2      5
 `define RegAddrBus      4:0                 // 共32个通用寄存器，因此寄存器地址为5位
 `define RegBus          31:0                // 寄存器位宽32位
+`define DoubleRegBus    63:0                // 两倍寄存器位宽
 `define RegAddrNop      5'b00000            // 空寄存器地址
 `define RegNop          32'h00000000        // 空寄存器
 
@@ -114,6 +115,18 @@
 `define FUNC3_CSRRWI    3'b101
 `define FUNC3_CSRRSI    3'b110
 `define FUNC3_CSRRCI    3'b111
+
+// CSR reg addr
+`define CSR_CYCLE       12'hc00
+`define CSR_CYCLEH      12'hc80
+`define CSR_MTVEC       12'h305
+`define CSR_MCAUSE      12'h342
+`define CSR_MTVAL       12'h343
+`define CSR_MEPC        12'h341
+`define CSR_MSTATUS     12'h300
+`define CSR_MIE         12'h304
+`define CSR_MIP         12'h344
+`define CSR_MSCRATCH    12'h340
 
 // FUNC3_CSRRW
 // 读后写控制状态寄存器 (Control and Status Register Read and Write). I-type, RV32I and RV64I. 
