@@ -51,6 +51,7 @@
 `define OP_S            7'b0100011
 `define OP_B            7'b1100011
 `define OP_L            7'b0000011
+`define OP_CSR          7'b1110011
 
 // function部分
 // R type inst
@@ -98,5 +99,37 @@
 
 `define OP_LUI          7'b0110111          // 高位立即数加载
 `define OP_AUIPC        7'b0010111          // PC 加立即数
-`define OP_JAL          7'b1101111          // 跳转并链接
-`define OP_JALR         7'b1100111          // 跳转并寄存器链接
+`define OP_JAL          7'b1101111          // 跳转并链接, 把下一条指令的地址(pc+4)保存到目的寄存器，然后把 pc 设置为当前值加上符号位扩展的offset
+`define OP_JALR         7'b1100111          // 跳转并寄存器链接, 把 pc 设置为 x[rs1] + sign-extend(offset)，把计算出的地址的最低有效位设为 0，并将原 pc+4的值写入 f[rd]
+
+// 中断异常相关
+`define OP_FENCE        7'b0001111
+`define INST_ECALL      32'h73              // 通过引发环境调用异常来请求执行环境
+`define INST_EBREAK     32'h00100073        // 通过抛出断点异常的方式请求调试器
+
+// CSR inst
+`define FUNC3_CSRRW     3'b001
+`define FUNC3_CSRRS     3'b010
+`define FUNC3_CSRRC     3'b011
+`define FUNC3_CSRRWI    3'b101
+`define FUNC3_CSRRSI    3'b110
+`define FUNC3_CSRRCI    3'b111
+
+// FUNC3_CSRRW
+// 读后写控制状态寄存器 (Control and Status Register Read and Write). I-type, RV32I and RV64I. 
+// 记控制状态寄存器 csr 中的值为 t。把寄存器 x[rs1]的值写入 csr，再把 t 写入 x[rd]。
+// FUNC3_CSRRS
+// 读后置位控制状态寄存器 (Control and Status Register Read and Set). I-type, RV32I and RV64I. 
+// 记控制状态寄存器 csr 中的值为 t。把 t 和寄存器 x[rs1]按位或的结果写入 csr，再把 t 写入 x[rd]。
+// FUNC3_CSRRC
+// 立即数读后清除控制状态寄存器 (Control and Status Register Read and Clear Immediate). I- type, RV32I and RV64I.
+// 记控制状态寄存器 csr 中的值为 t。把 t 和五位的零扩展的立即数 zimm 按位与的结果写入 csr，再把 t 写入 x[rd](csr 寄存器的第 5 位及更高位不变)。
+// FUNC3_CSRRWI
+// 立即数读后写控制状态寄存器 (Control and Status Register Read and Write Immediate). I-type, RV32I and RV64I.
+// 把控制状态寄存器 csr 中的值拷贝到 x[rd]中，再把五位的零扩展的立即数 zimm 的值写入 csr。
+// FUNC3_CSRRSI
+// 立即数读后设置控制状态寄存器 (Control and Status Register Read and Set Immediate). I-type, RV32I and RV64I.
+// 记控制状态寄存器 csr 中的值为 t。把 t 和五位的零扩展的立即数 zimm 按位或的结果写入 csr，再把 t 写入 x[rd](csr 寄存器的第 5 位及更高位不变)。
+// FUNC3_CSRRCI
+// 立即数读后清除控制状态寄存器 (Control and Status Register Read and Clear Immediate). I- type, RV32I and RV64I.
+// 记控制状态寄存器 csr 中的值为 t。把 t 和五位的零扩展的立即数 zimm 按位与的结果写入 csr，再把 t 写入 x[rd](csr 寄存器的第 5 位及更高位不变)。

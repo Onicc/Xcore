@@ -325,7 +325,14 @@ module ex (
                     wdata <= imm + pc;
                 end
                 `OP_JAL: begin
-                    
+                    wdata <= pc + 32'h4;
+                    ctrl_jump_flag = `JumpEnable;
+                    ctrl_jump_addr = {32{ctrl_jump_flag}} & (imm + pc);
+                end
+                `OP_JALR: begin
+                    wdata <= pc + 32'h4;
+                    ctrl_jump_flag = `JumpEnable;
+                    ctrl_jump_addr = {32{ctrl_jump_flag}} & (reg1 + imm) & 32'hfffffffe;
                 end
 
                 default: begin

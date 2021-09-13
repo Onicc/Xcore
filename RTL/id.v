@@ -161,9 +161,14 @@ module id (
                     reg_we <= `WriteEnable;
                 end
                 `OP_JAL: begin
-                    
+                    imm <= {{12{inst[31]}}, inst[19:12], inst[20], inst[30:21], 1'b0};
+                    reg_we <= `WriteEnable;
                 end
-
+                `OP_JALR: begin
+                    reg1_re <= `ReadEnable;
+                    imm <= {{20{inst[31]}}, inst[31:20]}
+                end
+                
                 default: begin
                 end
             endcase

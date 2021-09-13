@@ -48,6 +48,8 @@ A RISC-V CPU
     B bge 
     B bltu 
     B bgeu
+    J jal
+    I jalr
 添加模块：
     ctrl.v
 Q：跳转指令跳转时是执行到了ex，下一条流水线已经取址了，因此需要暂停流水线
