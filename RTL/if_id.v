@@ -11,15 +11,17 @@ module if_id (
     input wire [`InstAddrBus] if_pc,
     input wire [`InstBus] if_inst,
 
+    input wire [`HoldFlagBus] hold_flag,
+
     // 发送给译码的地址和指令，是一样的
     output reg [`InstAddrBus] id_pc,
     output reg [`InstBus] id_inst
 );
     
     always @(posedge clk) begin
-        if(rst == `RstEnable) begin
-            id_pc <= 32'h0000;
-            id_inst <= 32'h0000;
+        if(rst == `RstEnable | (hold_flag & `HoldIf == `HoldIf)) begin
+            id_pc <= `InstAddrNop;
+            id_inst <= `InstNop;
         end else begin
             id_pc <= if_pc;
             id_inst <= if_inst;

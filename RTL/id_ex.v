@@ -16,6 +16,8 @@ module id_ex (
     input wire [`RegAddrBus] id_reg_waddr, // 从指令中解析出来的，用于下一个模块计算完成后存放
     input wire id_reg_we,                   // 是否需要存放至目的寄存器，因为有得指令不需要存储目的值
 
+    input wire [`HoldFlagBus] hold_flag,
+
     // 本模块的主要输出
     output reg [`InstAddrBus] ex_pc,
     output reg [`InstBus] ex_inst,
@@ -27,13 +29,13 @@ module id_ex (
 );
 
     always @(posedge clk) begin
-        if(rst == `RstEnable) begin
+        if(rst == `RstEnable | (hold_flag & `HoldId == `HoldId)) begin
             ex_pc <= `InstAddrNop;
             ex_inst <= `ZeroWord;
             ex_reg1 <= `ZeroWord;
             ex_reg2 <= `ZeroWord;
             ex_imm <= `ZeroWord;
-            ex_reg_waddr <= 5'b00000;
+            ex_reg_waddr <= `RegAddrNop;
             ex_reg_we <= `WriteDisable;
         end else begin
             ex_pc <= id_pc;

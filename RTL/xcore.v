@@ -31,10 +31,31 @@ module xcore (
         .rdata(ram_rdata)
     );
 
+    // ctrl
+    wire ex_jump_flag;
+    wire [`InstAddrBus] ex_jump_addr;
+    wire [`HoldFlagBus] hold_flag;
+    wire [`HoldFlagBus] hold_flag_o;    //  给pc、if_id和id_ex
+    wire jump_flag;
+    wire [`InstAddrBus] jump_addr;
+    ctrl u_ctrl(
+        .rst(rst),
+        .ex_jump_flag(ex_jump_flag),
+        .ex_jump_addr(ex_jump_addr),
+        .hold_flag(hold_flag),
+
+        .pc_jump_flag(jump_flag),
+        .pc_jump_addr(jump_addr)
+    );
+
     // pc
     pc_reg u_pc_reg(
         .clk(clk),
         .rst(rst),
+        .jump_flag(jump_flag),
+        .jump_addr(jump_addr),
+        .hold_flag(hold_flag_o),
+
         .pc(pc),
         .ce(rom_ce)
     );
@@ -47,6 +68,8 @@ module xcore (
         
         .if_pc(pc),
         .if_inst(inst),
+
+        .hold_flag(hold_flag_o),
 
         .id_pc(id_pc),
         .id_inst(id_inst)
@@ -119,7 +142,9 @@ module xcore (
         .id_reg2(id_reg2),
         .id_imm(id_imm),
         .id_reg_waddr(id_reg_waddr),
-        .id_reg_we(id_reg_we),       
+        .id_reg_we(id_reg_we), 
+
+        .hold_flag(hold_flag_o),      
 
         // 本模块的主要输出
         .ex_pc(ex_pc),
@@ -153,6 +178,10 @@ module xcore (
         .ram_wraddr(ram_wraddr),
         .ram_wdata(ram_wdata),
         .ram_rdata(ram_rdata),
+
+        // ctrl
+        .ctrl_jump_flag(ex_jump_flag),
+        .ctrl_jump_addr(ex_jump_addr),
 
         // 执行的结果
         .waddr(ex_waddr),     // 待写的寄存器的地址

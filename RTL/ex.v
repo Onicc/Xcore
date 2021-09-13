@@ -26,6 +26,10 @@ module ex (
     output reg [`MemAddrBus] ram_wraddr,
     output reg [`MemBus] ram_wdata,
 
+    // out of ctrl
+    output reg ctrl_jump_flag,
+    output reg [`InstAddrBus] ctrl_jump_addr,
+
     // 执行的结果
     output reg [`RegAddrBus] waddr,     // 待写的寄存器的地址
     output reg [`RegBus] wdata,         // 待写的寄存器的数据
@@ -202,16 +206,28 @@ module ex (
                 `OP_B: begin
                     case(funct3)
                         `FUNC3_B_BEQ: begin
+                            ctrl_jump_flag = (reg1 == reg2) & `JumpEnable;
+                            ctrl_jump_addr = {32{ctrl_jump_flag}} & (imm + pc);
                         end
                         `FUNC3_B_BNE: begin
+                            ctrl_jump_flag = (reg1 != reg2) & `JumpEnable;
+                            ctrl_jump_addr = {32{ctrl_jump_flag}} & (imm + pc); 
                         end
                         `FUNC3_B_BLT: begin
+                            ctrl_jump_flag = ($signed(reg1) < $signed(reg2)) & `JumpEnable;
+                            ctrl_jump_addr = {32{ctrl_jump_flag}} & (imm + pc); 
                         end
                         `FUNC3_B_BGE: begin
+                            ctrl_jump_flag = ($signed(reg1) >= $signed(reg2)) & `JumpEnable;
+                            ctrl_jump_addr = {32{ctrl_jump_flag}} & (imm + pc); 
                         end
                         `FUNC3_B_BLTU: begin
+                            ctrl_jump_flag = (reg1 < reg2) & `JumpEnable;
+                            ctrl_jump_addr = {32{ctrl_jump_flag}} & (imm + pc); 
                         end
                         `FUNC3_B_BGEU: begin
+                            ctrl_jump_flag = (reg1 >= reg2) & `JumpEnable;
+                            ctrl_jump_addr = {32{ctrl_jump_flag}} & (imm + pc); 
                         end
                         default: begin
                         end

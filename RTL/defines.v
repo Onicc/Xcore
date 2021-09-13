@@ -10,6 +10,7 @@
 `define ChipEnable      1'b1
 `define ChipDisable     1'b0
 `define ByteWidth       7:0
+`define JumpEnable      1'b1
 
 
 `define InstAddrBus     31:0                // 指令地址总线宽度,可查询2^32条指令
@@ -18,7 +19,16 @@
 `define InstBus         31:0                // 指令数据总线宽度,每条指令是32位
 `define InstMemNum      131072              // 存放指令的ROM可存储的最大指令数
 `define InstMemNumLog2  17                  // ROM的位数，即地址宽度
+`define InstNop         32'h00000000
 
+// hold
+`define HoldFlagBus     2:0
+`define HoldNone       3'b000
+`define HoldPc         3'b001              // pc暂停
+`define HoldIf         3'b010              // 取址暂停
+`define HoldId         3'b100              // 译码暂停
+
+// reg
 `define RegNum          32                  // 共32个通用寄存器
 `define RegNumLog2      5
 `define RegAddrBus      4:0                 // 共32个通用寄存器，因此寄存器地址为5位
@@ -26,6 +36,7 @@
 `define RegAddrNop      5'b00000            // 空寄存器地址
 `define RegNop          32'h00000000        // 空寄存器
 
+// mem ram
 `define MemNum          4096                // 有多少个字 一个字MemBus位
 `define MemBus          31:0
 `define MemNop          32'h00000000
@@ -88,3 +99,4 @@
 `define OP_LUI          7'b0110111          // 高位立即数加载
 `define OP_AUIPC        7'b0010111          // PC 加立即数
 `define OP_JAL          7'b1101111          // 跳转并链接
+`define OP_JALR         7'b1100111          // 跳转并寄存器链接
