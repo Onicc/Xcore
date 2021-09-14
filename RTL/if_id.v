@@ -19,7 +19,7 @@ module if_id (
 );
     
     always @(posedge clk) begin
-        if(rst == `RstEnable | (hold_flag & `HoldIf == `HoldIf)) begin
+        if(rst == `RstEnable || (hold_flag & `HoldIf) == `HoldIf) begin
             id_pc <= `InstAddrNop;
             id_inst <= `InstNop;
         end else begin

@@ -29,7 +29,7 @@ module id_ex (
 );
 
     always @(posedge clk) begin
-        if(rst == `RstEnable | (hold_flag & `HoldId == `HoldId)) begin
+        if(rst == `RstEnable || (hold_flag & `HoldId) == `HoldId) begin
             ex_pc <= `InstAddrNop;
             ex_inst <= `ZeroWord;
             ex_reg1 <= `ZeroWord;
