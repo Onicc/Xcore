@@ -31,14 +31,26 @@ module id (
     input wire [`RegBus] mem_wdata,         // 待写的寄存器的数据
     input wire mem_we,                      // 写使能
 
+    // 从csr_reg传回来读取的寄存器值
+    input wire [`CsrBus] csr_rdata,
+
     // 本模块的主要输出
+    // 传给csr_reg模块
+    output reg [`CsrAddrBus] csr_raddr,           // id模块读寄存器地址
+
+    // 传给ex模块
     output reg [`InstAddrBus] pc_o,
     output reg [`InstBus] inst_o,
     output reg [`RegBus] reg1,          // 与reg1_rdata相同，不过这里是输出
     output reg [`RegBus] reg2,          // 与reg2_rdata相同，不过这里是输出
     output reg [`RegBus] imm,           // 立即数
     output reg [`RegAddrBus] reg_waddr, // 从指令中解析出来的，用于下一个模块计算完成后存放
-    output reg reg_we                   // 是否需要存放至目的寄存器，因为有得指令不需要存储目的值
+    output reg reg_we,                   // 是否需要存放至目的寄存器，因为有得指令不需要存储目的值
+
+    // 传给ex模块
+    output reg ex_csr_we,                       // ex模块写寄存器标志
+    output reg [`CsrAddrBus] ex_csr_waddr           // ex模块写寄存器地址
+    // output reg [`RegBus] ex_csr_rdata,           // ex模块写寄存器数据
 );
     wire [6:0] op = inst[6:0];
     wire [2:0] funct3 = inst[14:12];
@@ -56,6 +68,12 @@ module id (
             reg1_raddr <= `RegAddrNop;
             reg2_raddr <= `RegAddrNop;
             reg_waddr <= `RegAddrNop;
+            // csr
+            ex_csr_we <= `WriteDisable;
+            ex_csr_waddr <= `CsrAddrNop;
+            csr_raddr <= `CsrAddrNop;
+            // ex_csr_rdata <= `RegNop;
+
         end else begin
             // 按照理论值初始化
             pc_o <= pc;
@@ -67,7 +85,10 @@ module id (
             reg1_raddr <= inst[19:15];
             reg2_raddr <= inst[24:20];
             reg_waddr <= inst[11:7];
-
+            // csr
+            ex_csr_we <= `WriteDisable;
+            ex_csr_waddr <= `CsrAddrNop;
+            csr_raddr <= `CsrAddrNop;
             // 解析指令释放使能，获取地址
             case (op)
                 `OP_R: begin
@@ -151,6 +172,38 @@ module id (
                     endcase
                 end
 
+                `OP_CSR: begin
+                    case (funct3)
+                        `FUNC3_CSRRW, `FUNC3_CSRRS, `FUNC3_CSRRC: begin
+                            // read csr
+                            csr_raddr <= {20'h0, inst[31:20]};
+                            imm <= csr_rdata;
+
+                            reg1_re <= `ReadEnable;
+                            reg_we <= `WriteEnable;
+                            ex_csr_we <= `WriteEnable;
+                            ex_csr_waddr <= {20'h0, inst[31:20]};
+                        end
+                        `FUNC3_CSRRWI, `FUNC3_CSRRSI, `FUNC3_CSRRCI: begin
+                            // read csr
+                            csr_raddr <= {20'h0, inst[31:20]};
+                            imm <= csr_rdata;
+
+                            reg_we <= `WriteEnable;
+                            ex_csr_we <= `WriteEnable;
+                            ex_csr_waddr <= {20'h0, inst[31:20]};
+                        end
+                        default: begin
+                            imm <= `ZeroWord;
+                            reg1_re <= `ReadDisable;
+                            reg_we <= `WriteDisable;
+                            ex_csr_we <= `WriteDisable;
+                            ex_csr_waddr <= `CsrAddrNop;
+                            csr_raddr <= `CsrAddrNop;
+                        end
+                    endcase
+                end
+
                 // 一些指令
                 `OP_LUI: begin
                     imm <= {inst[31:12], 12'b0};
@@ -166,7 +219,7 @@ module id (
                 end
                 `OP_JALR: begin
                     reg1_re <= `ReadEnable;
-                    imm <= {{20{inst[31]}}, inst[31:20]}
+                    imm <= {{20{inst[31]}}, inst[31:20]};
                 end
                 
                 default: begin

@@ -16,6 +16,9 @@ module ex (
     input wire [`RegBus] imm,
     input wire [`RegAddrBus] reg_waddr, // 从指令中解析出来的，用于下一个模块计算完成后存放
     input wire reg_we,                   // 是否需要存放至目的寄存器，因为有得指令不需要存储目的值
+    // csr
+    input wire id_csr_we,
+    input wire [`CsrAddrBus] id_csr_waddr,
 
     // 从ram中传过来的
     input wire [`MemBus] ram_rdata,
@@ -33,31 +36,56 @@ module ex (
     // 执行的结果
     output reg [`RegAddrBus] waddr,     // 待写的寄存器的地址
     output reg [`RegBus] wdata,         // 待写的寄存器的数据
-    output reg we                       // 写使能
+    output reg we,                       // 写使能
+    // 写csr
+    output reg mem_csr_we,                       // ex模块写寄存器标志
+    output reg [`CsrAddrBus] mem_csr_waddr,           // ex模块写寄存器地址
+    output reg [`CsrBus] mem_csr_wdata         // 待写的寄存器的数据
 );
 
     wire [6:0] op = inst[6:0];
     wire [2:0] funct3 = inst[14:12];
     wire [6:0] funct7 = inst[31:25];
+    wire [4:0] zimm = inst[19:15];
 
     always @(*) begin
         if(rst == `RstEnable) begin
-            wdata <= `ZeroWord;
+            // reg
+            waddr <= `RegAddrNop;
+            wdata <= `RegNop;
+            we <= `WriteDisable;
+            // ram
             ram_we <= `WriteDisable;
             ram_sel <= `MenSelNop;
             ram_wraddr <= `MemAddrNop;
             ram_wdata <= `MemNop;
+            // csr
+            mem_csr_we <= `WriteDisable;
+            mem_csr_waddr <= `CsrAddrNop;
+            mem_csr_wdata <= `CsrNop;
+            // ctrl
+            ctrl_jump_flag <= `JumpDisable;
+            ctrl_jump_addr <= `InstAddrNop;
+
         end else begin
+            // reg
             we <= reg_we;
             waddr <= reg_waddr;
-            wdata <= `ZeroWord;
+            // csr
+            mem_csr_we <= id_csr_we;
+            mem_csr_waddr <= id_csr_waddr;
+            // ram
             // 只有S和L指令需要操作RAM，并且这里是马上读取RAM，因此最好一个时钟周期内只更改一次
             if(op != `OP_S && op != `OP_L) begin    
                 ram_we <= `WriteDisable;
                 ram_sel <= `MenSelNop;
                 ram_wraddr <= `MemAddrNop;
                 ram_wdata <= `MemNop;
-            end else begin
+            end
+            if(op != `OP_B && op != `OP_JAL && op != `OP_JALR) begin
+                // ctrl
+                ctrl_jump_flag <= `JumpDisable;
+                ctrl_jump_addr <= `InstAddrNop;
             end
 
             case (op)
@@ -313,6 +341,42 @@ module ex (
                             ram_we <= `WriteDisable;
                             ram_wdata <= `ZeroWord;
                             ram_wraddr <= `MemAddrNop;
+                        end
+                    endcase
+                end
+
+                `OP_CSR: begin
+                    // CSR寄存器读出的数据在imm内
+                    // rs1在reg1内
+                    // zimm在inst内
+                    case (funct3)
+                        `FUNC3_CSRRW: begin
+                            mem_csr_wdata <= reg1;
+                            wdata <= imm;
+                        end
+                        `FUNC3_CSRRS: begin
+                            mem_csr_wdata <= reg1 | imm;
+                            wdata <= imm;
+                        end
+                        `FUNC3_CSRRC: begin
+                            mem_csr_wdata <= (~reg1) & imm;
+                            wdata <= imm;
+                        end
+                        `FUNC3_CSRRWI: begin
+                            mem_csr_wdata <= {27'h0, zimm};
+                            wdata <= imm;
+                        end
+                        `FUNC3_CSRRSI: begin
+                            mem_csr_wdata <= {27'h0, zimm} | imm;
+                            wdata <= imm;
+                        end
+                        `FUNC3_CSRRCI: begin
+                            mem_csr_wdata <= (~{27'h0, zimm}) | imm;
+                            wdata <= imm;
+                        end
+                        default: begin
+                            mem_csr_wdata <= `CsrNop;
+                            wdata <= `CsrNop;
                         end
                     endcase
                 end

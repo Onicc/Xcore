@@ -8,25 +8,39 @@ module mem (
     input wire rst,
 
     // 从ex_mem中传过来的
-    input wire [`RegAddrBus] mem_waddr,     // 待写的寄存器的地址
-    input wire [`RegBus] mem_wdata,         // 待写的寄存器的数据
-    input wire mem_we,                       // 写使能
+    input wire [`RegAddrBus] ex_waddr,     // 待写的寄存器的地址
+    input wire [`RegBus] ex_wdata,         // 待写的寄存器的数据
+    input wire ex_we,                       // 写使能
+    // csr
+    input wire ex_csr_we,                       // ex模块写寄存器标志
+    input wire [`CsrAddrBus] ex_csr_waddr,           // ex模块写寄存器地址
+    input wire [`CsrBus] ex_csr_wdata,         // 待写的寄存器的数据
 
     // 传给mem
-    output reg [`RegAddrBus] mem_waddr_o,     // 待写的寄存器的地址
-    output reg [`RegBus] mem_wdata_o,         // 待写的寄存器的数据
-    output reg mem_we_o                       // 写使能
+    output reg [`RegAddrBus] mem_waddr,     // 待写的寄存器的地址
+    output reg [`RegBus] mem_wdata,         // 待写的寄存器的数据
+    output reg mem_we,                       // 写使能
+    // csr
+    output reg mem_csr_we,                       // ex模块写寄存器标志
+    output reg [`CsrAddrBus] mem_csr_waddr,           // ex模块写寄存器地址
+    output reg [`CsrBus] mem_csr_wdata         // 待写的寄存器的数据
 );
 
     always @(*) begin
         if(rst == `RstEnable) begin
-            mem_waddr_o <= 5'b00000;
-            mem_wdata_o <= `ZeroWord;
-            mem_we_o <= `WriteDisable;
+            mem_waddr <= `RegAddrNop;
+            mem_wdata <= `RegNop;
+            mem_we <= `WriteDisable;
+            mem_csr_we <= `WriteDisable;
+            mem_csr_waddr <= `CsrAddrNop;
+            mem_csr_wdata <= `CsrNop;
         end else begin
-            mem_waddr_o <= mem_waddr;
-            mem_wdata_o <= mem_wdata;
-            mem_we_o <= mem_we;
+            mem_waddr <= ex_waddr;
+            mem_wdata <= ex_wdata;
+            mem_we <= ex_we;
+            mem_csr_we <= ex_csr_we;
+            mem_csr_waddr <= ex_csr_waddr;
+            mem_csr_wdata <= ex_csr_wdata;
         end
     end
 

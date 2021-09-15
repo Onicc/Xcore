@@ -1,44 +1,47 @@
 `include "defines.v"
 
 // CSR寄存器模块
+// id从本模块读取寄存器值
+// wb从本模块写寄存器值
 module csr_reg(
 
     input wire clk,
     input wire rst,
 
-    // 从ex传过来
-    input wire ex_we,                       // ex模块写寄存器标志
-    input wire [`RegBus] ex_raddr,           // ex模块读寄存器地址
-    input wire [`RegBus] ex_waddr,           // ex模块写寄存器地址
-    input wire [`RegBus] ex_wdata,           // ex模块写寄存器数据
+    input wire [`CsrAddrBus] id_raddr,           // id模块读寄存器地址
+
+    // 从wb传过来
+    input wire wb_we,                       // wb模块写寄存器标志
+    input wire [`CsrAddrBus] wb_waddr,           // wb模块写寄存器地址
+    input wire [`CsrBus] wb_wdata,           // wb模块写寄存器数据
 
     // 从clint传过来
     input wire clint_we,                    // clint模块写寄存器标志
-    input wire [`RegBus] clint_raddr,        // clint模块读寄存器地址
-    input wire [`RegBus] clint_waddr,        // clint模块写寄存器地址
-    input wire [`RegBus] clint_wdata,        // clint模块写寄存器数据
+    input wire [`CsrAddrBus] clint_raddr,        // clint模块读寄存器地址
+    input wire [`CsrAddrBus] clint_waddr,        // clint模块写寄存器地址
+    input wire [`CsrBus] clint_wdata,        // clint模块写寄存器数据
 
     output reg global_int_en,              // 全局中断使能标志
 
-    // 传给ex
-    output reg [`RegBus] ex_rdata,           // ex模块读寄存器数据
+    // 传给id
+    output reg [`CsrBus] id_rdata,           // id模块读寄存器数据
 
     // 传给clint
-    output reg [`RegBus] clint_rdata         // clint模块读寄存器数据
-    output reg [`RegBus] clint_csr_mtvec,    // mtvec
-    output reg [`RegBus] clint_csr_mepc,     // mepc
-    output reg [`RegBus] clint_csr_mstatus   // mstatus
+    output reg [`CsrBus] clint_rdata,         // clint模块读寄存器数据
+    output reg [`CsrBus] clint_csr_mtvec,    // mtvec
+    output reg [`CsrBus] clint_csr_mepc,     // mepc
+    output reg [`CsrBus] clint_csr_mstatus   // mstatus
 );
 
-    reg [`DoubleRegBus] cycle;      // 用于计数
-    reg [`RegBus] mtvec;            // 机器模式异常入口基地址寄存器，进入异常的程序PC地址
-    reg [`RegBus] mcause;           // 机器模式异常原因寄存器，反映进入异常的原因
-    reg [`RegBus] mtval;            // 机器模式异常值寄存器，反映异常的信息
-    reg [`RegBus] mepc;             // 机器模式异常PC寄存器，用于保存异常的返回值
-    reg [`RegBus] mstatus;          // 机器模式状态寄存器，该寄存器中的MIE域和MPIE域用于反映中断全局使能
-    reg [`RegBus] mie;              // 机器模式中断使能寄存器，用于控制不同类型中断的局部使能    
-    reg [`RegBus] mip;
-    reg [`RegBus] mscratch;
+    reg [`DoubleCsrBus] cycle;      // 用于计数
+    reg [`CsrBus] mtvec;            // 机器模式异常入口基地址寄存器，进入异常的程序PC地址
+    reg [`CsrBus] mcause;           // 机器模式异常原因寄存器，反映进入异常的原因
+    reg [`CsrBus] mtval;            // 机器模式异常值寄存器，反映异常的信息
+    reg [`CsrBus] mepc;             // 机器模式异常PC寄存器，用于保存异常的返回值
+    reg [`CsrBus] mstatus;          // 机器模式状态寄存器，该寄存器中的MIE域和MPIE域用于反映中断全局使能
+    reg [`CsrBus] mie;              // 机器模式中断使能寄存器，用于控制不同类型中断的局部使能    
+    reg [`CsrBus] mip;
+    reg [`CsrBus] mscratch;
 
     // 全局中断更新
     always @(*) begin
@@ -48,7 +51,7 @@ module csr_reg(
     // cycle计数
     always @(posedge clk) begin
         if(rst == `RstEnable) begin
-            cycle <= {`RegNop, `RegNop};
+            cycle <= {`CsrNop, `CsrNop};
         end else begin
             cycle <= cycle + 1'b1;
         end
@@ -57,40 +60,40 @@ module csr_reg(
     // 写寄存器
     always @(posedge clk) begin
         if(rst == `RstEnable) begin
-            mtvec <= `RegNop;
-            mcause <= `RegNop;
-            mtval <= `RegNop;
-            mepc <= `RegNop;
-            mstatus <= `RegNop;
-            mie <= `RegNop;
-            mip <= `RegNop;
-            mscratch <= `RegNop;
+            mtvec <= `CsrNop;
+            mcause <= `CsrNop;
+            mtval <= `CsrNop;
+            mepc <= `CsrNop;
+            mstatus <= `CsrNop;
+            mie <= `CsrNop;
+            mip <= `CsrNop;
+            mscratch <= `CsrNop;
         end else begin
-            if(ex_we == `WriteEnable) begin
-                case(ex_waddr[11:0])
+            if(wb_we == `WriteEnable) begin
+                case(wb_waddr[11:0])
                     `CSR_MTVEC: begin
-                        mtvec <= ex_wdata;
+                        mtvec <= wb_wdata;
                     end
                     `CSR_MCAUSE: begin
-                        mcause <= ex_wdata;
+                        mcause <= wb_wdata;
                     end
                     `CSR_MTVAL: begin
-                        mtval <= ex_wdata;
+                        mtval <= wb_wdata;
                     end
                     `CSR_MEPC: begin
-                        mepc <= ex_wdata;
+                        mepc <= wb_wdata;
                     end
                     `CSR_MSTATUS: begin
-                        mstatus <= ex_wdata;
+                        mstatus <= wb_wdata;
                     end
                     `CSR_MIE: begin
-                        mie <= ex_wdata;
+                        mie <= wb_wdata;
                     end
                     `CSR_MIP: begin
-                        mip <= ex_wdata;
+                        mip <= wb_wdata;
                     end
                     `CSR_MSCRATCH: begin
-                        mscratch <= ex_wdata;
+                        mscratch <= wb_wdata;
                     end
                     default: begin
                     end
@@ -129,44 +132,45 @@ module csr_reg(
         end
     end
 
-    // ex读寄存器
+    // id读寄存器
     always @(*) begin
-        if((ex_waddr[11:0] == ex_raddr[11:0]) && (ex_we == `WriteEnable)) begin
-            ex_rdata = ex_wdata;
+        // 防止流水线在id和wb发送冲突
+        if((wb_waddr[11:0] == id_raddr[11:0]) && (wb_we == `WriteEnable)) begin
+            id_rdata = wb_wdata;
         end else begin
-            case(ex_raddr[11:0])
+            case(id_raddr[11:0])
                 `CSR_CYCLE: begin
-                    ex_rdata <= cycle[31:0];
+                    id_rdata <= cycle[31:0];
                 end
                 `CSR_CYCLEH: begin
-                    ex_rdata <= cycle[63:32];
+                    id_rdata <= cycle[63:32];
                 end
                 `CSR_MTVEC: begin
-                    ex_rdata <= mtvec;
+                    id_rdata <= mtvec;
                 end
                 `CSR_MCAUSE: begin
-                    ex_rdata <= mcause;
+                    id_rdata <= mcause;
                 end
                 `CSR_MTVAL: begin
-                    ex_rdata <= mtval;
+                    id_rdata <= mtval;
                 end
                 `CSR_MEPC: begin
-                    ex_rdata <= mepc;
+                    id_rdata <= mepc;
                 end
                 `CSR_MSTATUS: begin
-                    ex_rdata <= mstatus;
+                    id_rdata <= mstatus;
                 end
                 `CSR_MIE: begin
-                    ex_rdata <= mie;
+                    id_rdata <= mie;
                 end
                 `CSR_MIP: begin
-                    ex_rdata <= mip;
+                    id_rdata <= mip;
                 end
                 `CSR_MSCRATCH: begin
-                    ex_rdata <= mscratch;
+                    id_rdata <= mscratch;
                 end
                 default: begin
-                    ex_rdata <= `RegNop;
+                    id_rdata <= `CsrNop;
                 end
             endcase
         end
@@ -213,7 +217,7 @@ module csr_reg(
                     clint_rdata <= mscratch;
                 end
                 default: begin
-                    clint_rdata <= `RegNop;
+                    clint_rdata <= `CsrNop;
                 end
             endcase
         end
