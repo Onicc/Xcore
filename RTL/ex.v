@@ -71,9 +71,11 @@ module ex (
             // reg
             we <= reg_we;
             waddr <= reg_waddr;
+            wdata <= `RegNop;
             // csr
             mem_csr_we <= id_csr_we;
             mem_csr_waddr <= id_csr_waddr;
+            mem_csr_wdata <= `CsrNop;
             // ram
             // 只有S和L指令需要操作RAM，并且这里是马上读取RAM，因此最好一个时钟周期内只更改一次
             if(op != `OP_S && op != `OP_L) begin    

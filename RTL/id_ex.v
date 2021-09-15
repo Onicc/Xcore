@@ -38,14 +38,14 @@ module id_ex (
     always @(posedge clk) begin
         if(rst == `RstEnable || (hold_flag & `HoldId) == `HoldId) begin
             ex_pc <= `InstAddrNop;
-            ex_inst <= `ZeroWord;
-            ex_reg1 <= `ZeroWord;
-            ex_reg2 <= `ZeroWord;
+            ex_inst <= `InstNop;
+            ex_reg1 <= `RegNop;
+            ex_reg2 <= `RegNop;
             ex_imm <= `ZeroWord;
             ex_reg_waddr <= `RegAddrNop;
             ex_reg_we <= `WriteDisable;
             // csr
-            ex_csr_we <= `WriteEnable;
+            ex_csr_we <= `WriteDisable;
             ex_csr_waddr <= `CsrAddrNop;
         end else begin
             ex_pc <= id_pc;
