@@ -82,6 +82,7 @@ module ex (
                 ram_wraddr <= `MemAddrNop;
                 ram_wdata <= `MemNop;
             end
+            // ctrl是任意时刻触发，因此不能重复赋值
             if(op != `OP_B && op != `OP_JAL && op != `OP_JALR) begin
                 // ctrl
                 ctrl_jump_flag <= `JumpDisable;
