@@ -28,6 +28,7 @@ module ex (
     output reg [`MenSelBus] ram_sel,
     output reg [`MemAddrBus] ram_wraddr,
     output reg [`MemBus] ram_wdata,
+    output reg ram_req,
 
     // out of ctrl
     output reg ctrl_jump_flag,
@@ -55,6 +56,7 @@ module ex (
             wdata <= `RegNop;
             we <= `WriteDisable;
             // ram
+            ram_req <= 1'b0;
             ram_we <= `WriteDisable;
             ram_sel <= `MenSelNop;
             ram_wraddr <= `MemAddrNop;
@@ -78,7 +80,8 @@ module ex (
             mem_csr_wdata <= `CsrNop;
             // ram
             // 只有S和L指令需要操作RAM，并且这里是马上读取RAM，因此最好一个时钟周期内只更改一次
-            if(op != `OP_S && op != `OP_L) begin    
+            if(op != `OP_S && op != `OP_L) begin   
+                ram_req <= 1'b0; 
                 ram_we <= `WriteDisable;
                 ram_sel <= `MenSelNop;
                 ram_wraddr <= `MemAddrNop;
@@ -185,6 +188,7 @@ module ex (
                 end
                 
                 `OP_S: begin
+                    ram_req <= 1'b1;
                     ram_we <= `WriteEnable;
                     ram_wraddr <= reg1 + imm;    // 改为阻塞赋值，需要先读ram再写ram，因为写必须一次写一个字
                     case(funct3)
@@ -227,6 +231,7 @@ module ex (
                             ram_sel <= 4'b1111;
                         end
                         default: begin
+                            ram_req <= 1'b0;
                             ram_we <= `WriteDisable;
                             ram_wdata <= `ZeroWord;
                             ram_wraddr <= `MemAddrNop;
@@ -266,6 +271,7 @@ module ex (
                 end
 
                 `OP_L: begin
+                    ram_req <= 1'b1;
                     // L指令虽然只用到了ram_wraddr，但是也需要将ram的其他接口清空
                     ram_we <= `WriteDisable;
                     ram_sel <= `MenSelNop;
@@ -340,6 +346,7 @@ module ex (
                             endcase
                         end
                         default: begin
+                            ram_req <= 1'b0;
                             wdata <= `ZeroWord;
                             ram_we <= `WriteDisable;
                             ram_wdata <= `ZeroWord;

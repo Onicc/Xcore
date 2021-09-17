@@ -14,6 +14,9 @@ module ctrl (
     // 来自clint
     input wire clint_hold_flag,
 
+    // 来自rib
+    input wire rib_hold_flag,
+
     // 给pc, if, id
     output reg [`HoldFlagBus] hold_flag,
 
@@ -33,6 +36,8 @@ module ctrl (
             // 跳转指令暂停取址和译码
             if(ex_jump_flag == `JumpEnable || ex_hold_flag == `HoldEnable || clint_hold_flag == `HoldEnable) begin
                 hold_flag <= `HoldIf | `HoldId;
+            end else if(rib_hold_flag == `HoldEnable) begin
+                hold_flag <= `HoldPc;
             end else begin
                 hold_flag <= `HoldNone;
             end

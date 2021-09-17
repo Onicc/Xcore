@@ -17,7 +17,8 @@ module xcore_tb ();
 
     // 加载指令数据到rom
     initial begin
-        $readmemh ("./TB/inst_rom.data", u_xcore.u_inst_rom.inst_mem);
+        // $readmemh ("./TB/inst_rom.data", u_xcore.u_inst_rom.inst_mem);
+        $readmemh ("./TB/inst_rom.data", u_xcore_top.u_rom._rom);
     end
 
     // 延时1ms，如果程序没有先停止说明出现问题，这里强行停止
@@ -33,7 +34,7 @@ module xcore_tb ();
         $dumpvars(0, xcore_tb);
     end
 
-    xcore u_xcore(
+    xcore_top u_xcore_top(
         .clk(clk),
         .rst(rst)
     );

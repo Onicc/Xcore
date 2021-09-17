@@ -11,21 +11,12 @@ module pc_reg (
     input wire [`InstAddrBus] jump_addr,
     input wire [`HoldFlagBus] hold_flag,
 
-    output reg [`InstAddrBus] pc,       // pc指令的地址,InstAddrBus = 31:0,如果按字节取址,可以查询2^32/4条指令
-    output reg ce                       // 指令存储器的使能，当复位时失能，结束复位时使能
+    output reg [`InstAddrBus] pc       // pc指令的地址,InstAddrBus = 31:0,如果按字节取址,可以查询2^32/4条指令
 );
 
     always @(posedge clk) begin
-        if(rst == `RstEnable) begin
-            ce <= `ChipDisable;         // 复位状态，失能pc寄存器的读出
-        end else begin
-            ce <= `ChipEnable;          // 非复位状态，使能pc寄存器的读出
-        end
-    end
-
-    always @(posedge clk) begin
         // 复位
-        if(ce == `ChipDisable) begin
+        if(rst == `RstEnable) begin
             pc <= `InstAddrNop;         // 失能状态返回0地址
         // 跳转
         end else if(jump_flag == `JumpEnable) begin

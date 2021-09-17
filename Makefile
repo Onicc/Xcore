@@ -2,8 +2,12 @@ all: clean compile simulate gtkwave
 
 compile:
 	iverilog \
-	-I ./RTL \
-	-y ./RTL \
+	-I ./RTL/core \
+	-I ./RTL/peripherals \
+	-I ./RTL/soc \
+	-y ./RTL/core \
+	-y ./RTL/peripherals \
+	-y ./RTL/soc \
 	-o ./build/xcore_tb.o ./TB/xcore_tb.v
 
 simulate:

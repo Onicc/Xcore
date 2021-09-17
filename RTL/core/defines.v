@@ -27,10 +27,10 @@
 
 // hold
 `define HoldFlagBus     2:0
-`define HoldNone       3'b000
-`define HoldPc         3'b001              // pc暂停
-`define HoldIf         3'b010              // 取址暂停
-`define HoldId         3'b100              // 译码暂停
+`define HoldNone        3'b000
+`define HoldPc          3'b001              // pc暂停
+`define HoldIf          3'b010              // 取址暂停
+`define HoldId          3'b100              // 译码暂停
 
 // reg
 `define RegNum          32                  // 共32个通用寄存器
@@ -46,6 +46,10 @@
 `define CsrBus          31:0
 `define CsrNop          32'h00000000        // 空寄存器
 `define DoubleCsrBus    63:0                // 两倍寄存器位宽
+
+// mem rom
+`define RomNum          4096                // 有多少个字 一个字MemBus位 用于存放代码
+`define RomNumLog2      12 
 
 // mem ram
 `define MemNum          4096                // 有多少个字 一个字MemBus位
@@ -143,6 +147,9 @@
 `define INT_NONE        8'h0
 `define IntAssert       1'b1
 `define IntDeassert     1'b0
+
+`define RIB_REQ 1'b1
+`define RIB_NREQ 1'b0
 // `define INT_RET 8'hff
 // `define INT_TIMER0 8'b00000001
 // `define INT_TIMER0_ENTRY_ADDR 32'h4

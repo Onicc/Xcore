@@ -2,34 +2,56 @@
 
 module xcore (
     input wire clk,
-    input wire rst
+    input wire rst,
+
+    output wire [`MemAddrBus] rib_rom_pc_wraddr,
+    input wire [`MemBus] rib_rom_pc_rdata,
+
+    output wire [`MemAddrBus] rib_ram_wraddr,
+    output wire [`MemBus] rib_ram_wdata,
+    input wire [`MemBus] rib_ram_rdata,
+    output wire rib_ram_req,
+    output wire rib_ram_we,
+    output wire [`MenSelBus] ram_sel,   // 特殊
+
+    input wire rib_hold_flag
 );
-    // ROM
-    wire [`InstBus] inst;
-    wire [`InstAddrBus] pc;
-    wire rom_ce;
-    inst_rom u_inst_rom(
-        .ce(rom_ce),
-        .addr(pc),
-        .inst(inst)
-    );
 
-    // RAM
-    wire ram_we;
-    wire [`MenSelBus] ram_sel;
-    wire [`MemAddrBus] ram_wraddr;
-    wire [`MemBus] ram_wdata;
-    wire [`MemBus] ram_rdata;
-    ram u_ram(
-        .clk(clk),
-        .rst(rst),
+    // // ROM
+    // wire rom_we;
+    // wire [`MemAddrBus] rom_wraddr;    // pc
+    // wire [`MemBus] rom_wdata;
+    // wire [`MemBus] rom_rdata;         // inst
 
-        .we(ram_we),
-        .sel(ram_sel),
-        .wraddr(ram_wraddr),
-        .wdata(ram_wdata),
-        .rdata(ram_rdata)
-    );
+    // assign rom_we = `WriteDisable;
+    // assign rom_wdata = `ZeroWord;
+    // rom u_rom(
+    //     .clk(clk),
+    //     .rst(rst),
+
+    //     .we(rom_we),
+    //     .wraddr(rom_wraddr),
+    //     .wdata(rom_wdata),
+
+    //     .rdata(rom_rdata)
+    // );
+
+    // // RAM
+    // wire ram_we;
+    // wire [`MenSelBus] ram_sel;
+    // wire [`MemAddrBus] ram_wraddr;
+    // wire [`MemBus] ram_wdata;
+    // wire [`MemBus] ram_rdata;
+    // ram u_ram(
+    //     .clk(clk),
+    //     .rst(rst),
+
+    //     .we(ram_we),
+    //     .sel(ram_sel),
+    //     .wraddr(ram_wraddr),
+    //     .wdata(ram_wdata),
+    //     .rdata(ram_rdata)
+    // );
 
     // ctrl
     wire ex_jump_flag;
@@ -45,6 +67,7 @@ module xcore (
         .ex_jump_addr(ex_jump_addr),
         .ex_hold_flag(ex_hold_flag),
         .clint_hold_flag(clint_hold_flag),
+        .rib_hold_flag(rib_hold_flag),
 
         .hold_flag(hold_flag),
         .pc_jump_flag(jump_flag),
@@ -59,8 +82,7 @@ module xcore (
         .jump_addr(jump_addr),
         .hold_flag(hold_flag),
 
-        .pc(pc),
-        .ce(rom_ce)
+        .pc(rib_rom_pc_wraddr)
     );
 
     // csr_reg
@@ -85,8 +107,8 @@ module xcore (
         .clk(clk),
         .rst(rst),
         
-        .if_pc(pc),
-        .if_inst(inst),
+        .if_pc(rib_rom_pc_wraddr),
+        .if_inst(rib_rom_pc_rdata),
 
         .hold_flag(hold_flag),
 
@@ -204,15 +226,16 @@ module xcore (
         .imm(ex_imm),
         .reg_waddr(ex_reg_waddr),
         .reg_we(ex_reg_we),
-        .ram_rdata(ram_rdata),
+        .ram_rdata(rib_ram_rdata),
         .id_csr_we(ex_csr_we),
         .id_csr_waddr(ex_csr_waddr),
 
         // ram
-        .ram_we(ram_we),
+        .ram_we(rib_ram_we),
         .ram_sel(ram_sel),
-        .ram_wraddr(ram_wraddr),
-        .ram_wdata(ram_wdata),
+        .ram_wraddr(rib_ram_wraddr),
+        .ram_wdata(rib_ram_wdata),
+        .ram_req(rib_ram_req),
 
         // ctrl
         .ctrl_jump_flag(ex_jump_flag),
