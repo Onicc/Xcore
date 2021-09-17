@@ -33,18 +33,26 @@ module rib(
     input wire[`MemBus] s1_rdata,         // 从设备1读取到的数据
     output reg s1_we,                    // 从设备1写标志
 
+    // slave 2 interface
+    output reg[`MemAddrBus] s2_wraddr,     // 从设备2读、写地址
+    output reg[`MemBus] s2_wdata,         // 从设备2写数据
+    input wire[`MemBus] s2_rdata,         // 从设备2读取到的数据
+    output reg s2_we,                    // 从设备2写标志
+
     output reg hold_flag                 // 暂停流水线标志
 );
 
     // 访问地址的最高4位决定要访问的是哪一个从设备
     // 因此最多支持16个从设备
-    parameter [3:0]slave_0 = 4'b0000;
-    parameter [3:0]slave_1 = 4'b0001;
+    parameter [3:0] slave_0 = 4'b0000;      // ROM  基地址  0x00000000
+    parameter [3:0] slave_1 = 4'b0001;      // RAM  基地址  0x10000000
+    parameter [3:0] slave_2 = 4'b0010;      // GPIO 基地址  0x20000000
 
-    parameter [1:0]grant0 = 2'h0;
-    parameter [1:0]grant1 = 2'h1;
-    parameter [1:0]grant2 = 2'h2;
-    parameter [1:0]grant3 = 2'h3;
+
+    parameter [1:0] grant0 = 2'h0;
+    parameter [1:0] grant1 = 2'h1;
+    parameter [1:0] grant2 = 2'h2;
+    parameter [1:0] grant3 = 2'h3;
 
     wire[3:0] req;
     reg[1:0] grant;
@@ -72,10 +80,15 @@ module rib(
 
         s0_wraddr = `ZeroWord;
         s1_wraddr = `ZeroWord;
+        s2_wraddr = `ZeroWord;
+
         s0_wdata = `ZeroWord;
         s1_wdata = `ZeroWord;
+        s2_wdata = `ZeroWord;
+
         s0_we = `WriteDisable;
         s1_we = `WriteDisable;
+        s2_we = `WriteDisable;
         
         case (grant)
             grant0: begin
@@ -91,6 +104,12 @@ module rib(
                         s1_wraddr = {{4'h0}, {m0_wraddr[27:0]}};
                         s1_wdata = m0_wdata;
                         m0_rdata = s1_rdata;
+                    end
+                    slave_2: begin
+                        s2_we = m0_we;
+                        s2_wraddr = {{4'h0}, {m0_wraddr[27:0]}};
+                        s2_wdata = m0_wdata;
+                        m0_rdata = s2_rdata;
                     end
                     default: begin
 
@@ -111,6 +130,12 @@ module rib(
                         s1_wraddr = {{4'h0}, {m1_wraddr[27:0]}};
                         s1_wdata = m1_wdata;
                         m1_rdata = s1_rdata;
+                    end
+                    slave_2: begin
+                        s2_we = m1_we;
+                        s2_wraddr = {{4'h0}, {m1_wraddr[27:0]}};
+                        s2_wdata = m1_wdata;
+                        m1_rdata = s2_rdata;
                     end
                     default: begin
 
