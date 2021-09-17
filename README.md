@@ -54,3 +54,27 @@ A RISC-V CPU
     ctrl.v
     csr_reg.v
 Q：跳转指令跳转时是执行到了ex，下一条流水线已经取址了，因此需要暂停流水线
+
+2021.09.16
+添加指令：
+    I ecall
+    I ebreak 
+    I csrrw 
+    I csrrs
+    I csrrc
+    I csrrwi 
+    I cssrrsi 
+    I csrrci
+添加模块：
+    rib.v
+    rom.v
+    xcore_top.v
+添加总线，通过L和S指令可以访问不同的外设，
+主0只读连接从0的ROM，都是0，因此地址不需要更改
+从1为RAM，访问通过L和S指令访问，编写汇编的时候需要设置x[rs1]为0x10000000，将地址指向RAM
+
+基地址:
+    ROM:  0x00000000
+    RAM:  0x10000000
+    UART: 0x20000000
+    GPIO: 0x30000000

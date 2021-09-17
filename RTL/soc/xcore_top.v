@@ -8,30 +8,30 @@ module xcore_top (
     wire [`MenSelBus] ram_sel;
 
     // master 0 interface
-    wire[`MemAddrBus] m0_addr_i;
-    wire[`MemBus] m0_data_i;
-    wire[`MemBus] m0_data_o;
-    wire m0_req_i;
-    wire m0_we_i;
+    wire[`MemAddrBus] m0_wraddr;
+    wire[`MemBus] m0_wdata;
+    wire[`MemBus] m0_rdata;
+    wire m0_req;
+    wire m0_we;
 
     // master 1 interface
-    wire[`MemAddrBus] m1_addr_i;
-    wire[`MemBus] m1_data_i;
-    wire[`MemBus] m1_data_o;
-    wire m1_req_i;
-    wire m1_we_i;
+    wire[`MemAddrBus] m1_wraddr;
+    wire[`MemBus] m1_wdata;
+    wire[`MemBus] m1_rdata;
+    wire m1_req;
+    wire m1_we;
 
     // slave 0 interface
-    wire[`MemAddrBus] s0_addr_o;
-    wire[`MemBus] s0_data_o;
-    wire[`MemBus] s0_data_i;
-    wire s0_we_o;
+    wire[`MemAddrBus] s0_wraddr;
+    wire[`MemBus] s0_wdata;
+    wire[`MemBus] s0_rdata;
+    wire s0_we;
 
     // slave 1 interface
-    wire[`MemAddrBus] s1_addr_o;
-    wire[`MemBus] s1_data_o;
-    wire[`MemBus] s1_data_i;
-    wire s1_we_o;
+    wire[`MemAddrBus] s1_wraddr;
+    wire[`MemBus] s1_wdata;
+    wire[`MemBus] s1_rdata;
+    wire s1_we;
 
     // rib
     wire rib_hold_flag;
@@ -40,14 +40,14 @@ module xcore_top (
         .clk(clk),
         .rst(rst),
 
-        .rib_rom_pc_wraddr(m0_addr_i),
-        .rib_rom_pc_rdata(m0_data_o),
+        .rib_rom_pc_wraddr(m0_wraddr),
+        .rib_rom_pc_rdata(m0_rdata),
 
-        .rib_ram_wraddr(m1_addr_i),
-        .rib_ram_wdata(m1_data_i),
-        .rib_ram_rdata(m1_data_o),
-        .rib_ram_req(m1_req_i),
-        .rib_ram_we(m1_we_i),
+        .rib_ram_wraddr(m1_wraddr),
+        .rib_ram_wdata(m1_wdata),
+        .rib_ram_rdata(m1_rdata),
+        .rib_ram_req(m1_req),
+        .rib_ram_we(m1_we),
         .ram_sel(ram_sel),   // 特殊
 
         .rib_hold_flag(rib_hold_flag)
@@ -58,10 +58,10 @@ module xcore_top (
         .clk(clk),
         .rst(rst),
 
-        .we(s0_we_o),
-        .wraddr(s0_addr_o),
-        .wdata(s0_data_o),
-        .rdata(s0_data_i)
+        .we(s0_we),
+        .wraddr(s0_wraddr),
+        .wdata(s0_wdata),
+        .rdata(s0_rdata)
     );
 
     // RAM
@@ -69,11 +69,11 @@ module xcore_top (
         .clk(clk),
         .rst(rst),
 
-        .we(s1_we_o),
+        .we(s1_we),
         .sel(ram_sel),
-        .wraddr(s1_addr_o),
-        .wdata(s1_data_o),
-        .rdata(s1_data_i)
+        .wraddr(s1_wraddr),
+        .wdata(s1_wdata),
+        .rdata(s1_rdata)
     );
 
     // rib
@@ -82,32 +82,32 @@ module xcore_top (
         .rst(rst),
 
         // master 0 interface
-        .m0_addr_i(m0_addr_i),
-        .m0_data_i(`ZeroWord),
-        .m0_data_o(m0_data_o),
-        .m0_req_i(`RIB_REQ),
-        .m0_we_i(`WriteDisable),
+        .m0_wraddr(m0_wraddr),
+        .m0_wdata(`ZeroWord),
+        .m0_rdata(m0_rdata),
+        .m0_req(`RIB_REQ),
+        .m0_we(`WriteDisable),
 
         // master 1 interface
-        .m1_addr_i(m1_addr_i),
-        .m1_data_i(m1_data_i),
-        .m1_data_o(m1_data_o),
-        .m1_req_i(m1_req_i),
-        .m1_we_i(m1_we_i),
+        .m1_wraddr(m1_wraddr),
+        .m1_wdata(m1_wdata),
+        .m1_rdata(m1_rdata),
+        .m1_req(m1_req),
+        .m1_we(m1_we),
 
         // slave 0 interface
-        .s0_addr_o(s0_addr_o),
-        .s0_data_o(s0_data_o),
-        .s0_data_i(s0_data_i),
-        .s0_we_o(s0_we_o),
+        .s0_wraddr(s0_wraddr),
+        .s0_wdata(s0_wdata),
+        .s0_rdata(s0_rdata),
+        .s0_we(s0_we),
 
         // slave 1 interface
-        .s1_addr_o(s1_addr_o),
-        .s1_data_o(s1_data_o),
-        .s1_data_i(s1_data_i),
-        .s1_we_o(s1_we_o),
+        .s1_wraddr(s1_wraddr),
+        .s1_wdata(s1_wdata),
+        .s1_rdata(s1_rdata),
+        .s1_we(s1_we),
 
-        .hold_flag_o(rib_hold_flag)
+        .hold_flag(rib_hold_flag)
     );
 
 endmodule
