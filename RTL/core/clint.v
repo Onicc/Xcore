@@ -18,7 +18,7 @@ module clint (
     // 来自csr_reg 
     input wire [`CsrBus] csr_mtvec,     // mtvec
     input wire [`CsrBus] csr_mepc,      // mepc
-    input wire [`CsrBus] csr_mstatus.   // mstatus
+    input wire [`CsrBus] csr_mstatus,   // mstatus
     input wire csr_global_int_en,       // 全局中断使能标志
 
     // ctrl

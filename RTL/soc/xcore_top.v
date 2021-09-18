@@ -4,6 +4,10 @@ module xcore_top (
     input wire clk,
     input wire rst,
 
+    input wire uart_debug_pin,
+    output wire uart_tx_pin, // UART发送引脚
+    input wire uart_rx_pin,  // UART接收引脚
+
     inout wire [1:0] gpio    // GPIO引脚
 );
 
@@ -23,6 +27,13 @@ module xcore_top (
     wire m1_req;
     wire m1_we;
 
+    // master 2 interface
+    wire [`MemAddrBus] m2_wraddr;
+    wire [`MemBus] m2_wdata;
+    wire [`MemBus] m2_rdata;
+    wire m2_req;
+    wire m2_we;
+
     // slave 0 interface
     wire [`MemAddrBus] s0_wraddr;
     wire [`MemBus] s0_wdata;
@@ -35,11 +46,17 @@ module xcore_top (
     wire [`MemBus] s1_rdata;
     wire s1_we;
 
-    // slave 1 interface
+    // slave 2 interface
     wire [`MemAddrBus] s2_wraddr;
     wire [`MemBus] s2_wdata;
     wire [`MemBus] s2_rdata;
     wire s2_we;
+
+    // slave 3 interface
+    wire [`MemAddrBus] s3_wraddr;
+    wire [`MemBus] s3_wdata;
+    wire [`MemBus] s3_rdata;
+    wire s3_we;
 
     // rib
     wire rib_hold_flag;
@@ -105,6 +122,19 @@ module xcore_top (
         .reg_data(gpio_data)
     );
 
+    uart u_uart(
+        .clk(clk),
+        .rst(rst),
+
+        .we(s3_we),
+        .wraddr(s3_wraddr),
+        .wdata(s3_wdata),
+        .rdata(s3_rdata),
+
+        .tx_pin(uart_tx_pin),
+        .rx_pin(uart_rx_pin)
+    );
+
     // rib
     rib u_rib(
         .clk(clk),
@@ -143,6 +173,19 @@ module xcore_top (
         .s2_we(s2_we),
 
         .hold_flag(rib_hold_flag)
+    );
+
+    uart_debug u_uart_debug(
+        .clk(clk),
+        .rst(rst),
+
+        .debug_en(uart_debug_pin), 
+
+        .req(m2_req),
+        .we(m2_we),
+        .wraddr(m2_wdata),
+        .wdata(m2_wdata),
+        .rdata(m2_rdata)
     );
 
 endmodule

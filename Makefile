@@ -5,9 +5,11 @@ compile:
 	-I ./RTL/core \
 	-I ./RTL/peripherals \
 	-I ./RTL/soc \
+	-I ./RTL/debug \
 	-y ./RTL/core \
 	-y ./RTL/peripherals \
 	-y ./RTL/soc \
+	-y ./RTL/debug \
 	-o ./build/xcore_tb.o ./TB/xcore_tb.v
 
 simulate:

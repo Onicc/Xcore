@@ -10,8 +10,7 @@ module rom(
     input wire [`MemBus] wdata,
 
     output reg [`MemBus] rdata         // read data
-
-    );
+);
 
     reg[`MemBus] _rom[0:`RomNum - 1];
 
