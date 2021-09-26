@@ -24,31 +24,31 @@ module ram (
             // wraddr/8才是对应的哪一个
             // _ram[wraddr[31:2]] <= wdata;
             if (sel[3] == 1'b1) begin
-                ram3[wraddr[31:2]] <= wdata[31:24];
+                ram3[wraddr[`MemNumLog2-1:2]] <= wdata[31:24];
             end
             if (sel[2] == 1'b1) begin
-                ram2[wraddr[31:2]] <= wdata[23:16];
+                ram2[wraddr[`MemNumLog2-1:2]] <= wdata[23:16];
             end
             if (sel[1] == 1'b1) begin
-                ram1[wraddr[31:2]] <= wdata[15:8];
+                ram1[wraddr[`MemNumLog2-1:2]] <= wdata[15:8];
             end
             if (sel[0] == 1'b1) begin
-                ram0[wraddr[31:2]] <= wdata[7:0];
+                ram0[wraddr[`MemNumLog2-1:2]] <= wdata[7:0];
             end	
         end
     end
 
     always @(*) begin
         if(rst == `RstEnable) begin
-            rdata <= `ZeroWord;
+            rdata = `ZeroWord;
         end else if(we == `WriteDisable) begin
-            // rdata <= _ram[wraddr[31:2]]; 
-		    rdata <= {ram3[wraddr[31:2]],
+            // rdata = _ram[wraddr[31:2]]; 
+		    rdata = {ram3[wraddr[31:2]],
 		              ram2[wraddr[31:2]],
 		              ram1[wraddr[31:2]],
 		              ram0[wraddr[31:2]]};
         end else begin
-            rdata <= `ZeroWord;
+            rdata = `ZeroWord;
         end
     end
 

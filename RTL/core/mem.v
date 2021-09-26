@@ -28,19 +28,19 @@ module mem (
 
     always @(*) begin
         if(rst == `RstEnable) begin
-            mem_waddr <= `RegAddrNop;
-            mem_wdata <= `RegNop;
-            mem_we <= `WriteDisable;
-            mem_csr_we <= `WriteDisable;
-            mem_csr_waddr <= `CsrAddrNop;
-            mem_csr_wdata <= `CsrNop;
+            mem_waddr = `RegAddrNop;
+            mem_wdata = `RegNop;
+            mem_we = `WriteDisable;
+            mem_csr_we = `WriteDisable;
+            mem_csr_waddr = `CsrAddrNop;
+            mem_csr_wdata = `CsrNop;
         end else begin
-            mem_waddr <= ex_waddr;
-            mem_wdata <= ex_wdata;
-            mem_we <= ex_we;
-            mem_csr_we <= ex_csr_we;
-            mem_csr_waddr <= ex_csr_waddr;
-            mem_csr_wdata <= ex_csr_wdata;
+            mem_waddr = ex_waddr;
+            mem_wdata = ex_wdata;
+            mem_we = ex_we;
+            mem_csr_we = ex_csr_we;
+            mem_csr_waddr = ex_csr_waddr;
+            mem_csr_wdata = ex_csr_wdata;
         end
     end
 

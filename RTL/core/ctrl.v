@@ -27,19 +27,19 @@ module ctrl (
 
     always @(*) begin
         if(rst == `RstEnable) begin
-            hold_flag <= `HoldNone;
-            pc_jump_flag <= `JumpDisable;
-            pc_jump_addr <= `InstAddrNop;
+            hold_flag = `HoldNone;
+            pc_jump_flag = `JumpDisable;
+            pc_jump_addr = `InstAddrNop;
         end else begin
-            pc_jump_addr <= ex_jump_addr;
-            pc_jump_flag <= ex_jump_flag;
+            pc_jump_addr = ex_jump_addr;
+            pc_jump_flag = ex_jump_flag;
             // 跳转指令暂停取址和译码
             if(ex_jump_flag == `JumpEnable || ex_hold_flag == `HoldEnable || clint_hold_flag == `HoldEnable) begin
-                hold_flag <= `HoldIf | `HoldId;
+                hold_flag = `HoldIf | `HoldId;
             end else if(rib_hold_flag == `HoldEnable) begin
-                hold_flag <= `HoldPc;
+                hold_flag = `HoldPc;
             end else begin
-                hold_flag <= `HoldNone;
+                hold_flag = `HoldNone;
             end
         end
     end

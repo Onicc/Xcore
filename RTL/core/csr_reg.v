@@ -45,7 +45,7 @@ module csr_reg(
 
     // 全局中断更新
     always @(*) begin
-        global_int_en <= (mstatus[3] == 1'b1)? 1'b1: 1'b0;
+        global_int_en = (mstatus[3] == 1'b1)? 1'b1: 1'b0;
     end
 
     // cycle计数
@@ -140,37 +140,37 @@ module csr_reg(
         end else begin
             case(id_raddr[11:0])
                 `CSR_CYCLE: begin
-                    id_rdata <= cycle[31:0];
+                    id_rdata = cycle[31:0];
                 end
                 `CSR_CYCLEH: begin
-                    id_rdata <= cycle[63:32];
+                    id_rdata = cycle[63:32];
                 end
                 `CSR_MTVEC: begin
-                    id_rdata <= mtvec;
+                    id_rdata = mtvec;
                 end
                 `CSR_MCAUSE: begin
-                    id_rdata <= mcause;
+                    id_rdata = mcause;
                 end
                 `CSR_MTVAL: begin
-                    id_rdata <= mtval;
+                    id_rdata = mtval;
                 end
                 `CSR_MEPC: begin
-                    id_rdata <= mepc;
+                    id_rdata = mepc;
                 end
                 `CSR_MSTATUS: begin
-                    id_rdata <= mstatus;
+                    id_rdata = mstatus;
                 end
                 `CSR_MIE: begin
-                    id_rdata <= mie;
+                    id_rdata = mie;
                 end
                 `CSR_MIP: begin
-                    id_rdata <= mip;
+                    id_rdata = mip;
                 end
                 `CSR_MSCRATCH: begin
-                    id_rdata <= mscratch;
+                    id_rdata = mscratch;
                 end
                 default: begin
-                    id_rdata <= `CsrNop;
+                    id_rdata = `CsrNop;
                 end
             endcase
         end
@@ -178,46 +178,46 @@ module csr_reg(
 
     // clint读寄存器
     always @(*) begin
-        clint_csr_mtvec <= mtvec;
-        clint_csr_mepc <= mepc;
-        clint_csr_mstatus <= mstatus;
+        clint_csr_mtvec = mtvec;
+        clint_csr_mepc = mepc;
+        clint_csr_mstatus = mstatus;
 
         if((clint_waddr[11:0] == clint_raddr[11:0]) && (clint_we == `WriteEnable)) begin
             clint_rdata = clint_wdata;
         end else begin
             case(clint_raddr[11:0])
                 `CSR_CYCLE: begin
-                    clint_rdata <= cycle[31:0];
+                    clint_rdata = cycle[31:0];
                 end
                 `CSR_CYCLEH: begin
-                    clint_rdata <= cycle[63:32];
+                    clint_rdata = cycle[63:32];
                 end
                 `CSR_MTVEC: begin
-                    clint_rdata <= mtvec;
+                    clint_rdata = mtvec;
                 end
                 `CSR_MCAUSE: begin
-                    clint_rdata <= mcause;
+                    clint_rdata = mcause;
                 end
                 `CSR_MTVAL: begin
-                    clint_rdata <= mtval;
+                    clint_rdata = mtval;
                 end
                 `CSR_MEPC: begin
-                    clint_rdata <= mepc;
+                    clint_rdata = mepc;
                 end
                 `CSR_MSTATUS: begin
-                    clint_rdata <= mstatus;
+                    clint_rdata = mstatus;
                 end
                 `CSR_MIE: begin
-                    clint_rdata <= mie;
+                    clint_rdata = mie;
                 end
                 `CSR_MIP: begin
-                    clint_rdata <= mip;
+                    clint_rdata = mip;
                 end
                 `CSR_MSCRATCH: begin
-                    clint_rdata <= mscratch;
+                    clint_rdata = mscratch;
                 end
                 default: begin
-                    clint_rdata <= `CsrNop;
+                    clint_rdata = `CsrNop;
                 end
             endcase
         end

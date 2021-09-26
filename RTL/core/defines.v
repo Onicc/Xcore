@@ -53,6 +53,7 @@
 
 // mem ram
 `define MemNum          4096                // 有多少个字 一个字MemBus位
+`define MemNumLog2      12 
 `define MemBus          31:0
 `define MemNop          32'h00000000
 `define MemAddrBus      31:0
@@ -72,12 +73,14 @@
 // R type inst
 `define FUNC3_R_ADD     3'b000              // 加法，忽略算术溢出
 `define FUNC3_R_SUB     3'b000              // 减法，忽略算术溢出
+`define FUNC3_R_ADD_SUB 3'b000              // 和为一个，不然case item is unreachable
 `define FUNC3_R_SLL     3'b001              // 逻辑左移
 `define FUNC3_R_SLT     3'b010              // 小于则置位
 `define FUNC3_R_SLTU    3'b011              // 无符号小于则置位
 `define FUNC3_R_XOR     3'b100              // 异或
 `define FUNC3_R_SRL     3'b101              // 逻辑右移
 `define FUNC3_R_SRA     3'b101              // 算术右移
+`define FUNC3_R_SRL_SRA 3'b101              // 和为一个，不然case item is unreachable
 `define FUNC3_R_OR      3'b110              // 或
 `define FUNC3_R_AND     3'b111              // 与
 
@@ -91,6 +94,7 @@
 `define FUNC3_I_SLLI    3'b001              // 立即数逻辑左移
 `define FUNC3_I_SRLI    3'b101              // 立即数逻辑右移
 `define FUNC3_I_SRAI    3'b101              // 立即数算术右移
+`define FUNC3_I_SRLI_SRAI    3'b101         // 和为一个，不然case item is unreachable
 
 // S type inst
 `define FUNC3_S_SB      3'b000              // 存字节

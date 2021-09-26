@@ -154,6 +154,13 @@ module xcore_top (
         .m1_req(m1_req),
         .m1_we(m1_we),
 
+        // master 2 interface   UART控制器
+        .m2_wraddr(m2_wraddr),
+        .m2_wdata(m2_wdata),
+        .m2_rdata(m2_rdata),
+        .m2_req(m2_req),
+        .m2_we(m2_we),
+
         // slave 0 interface    ROM
         .s0_wraddr(s0_wraddr),
         .s0_wdata(s0_wdata),
@@ -172,6 +179,12 @@ module xcore_top (
         .s2_rdata(s2_rdata),
         .s2_we(s2_we),
 
+        // slave 3 interface    UART
+        .s3_wraddr(s3_wraddr),
+        .s3_wdata(s3_wdata),
+        .s3_rdata(s3_rdata),
+        .s3_we(s3_we),
+
         .hold_flag(rib_hold_flag)
     );
 
@@ -183,7 +196,7 @@ module xcore_top (
 
         .req(m2_req),
         .we(m2_we),
-        .wraddr(m2_wdata),
+        .wraddr(m2_wraddr),
         .wdata(m2_wdata),
         .rdata(m2_rdata)
     );

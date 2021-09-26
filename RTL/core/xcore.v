@@ -53,6 +53,16 @@ module xcore (
     //     .rdata(ram_rdata)
     // );
 
+    // ex
+    wire [`RegAddrBus] ex_waddr;     // 待写的寄存器的地址
+    wire [`RegBus] ex_wdata;         // 待写的寄存器的数据
+    wire ex_we;                       // 写使能
+
+    // mem
+    wire [`RegAddrBus] mem_waddr_o;     // 待写的寄存器的地址
+    wire [`RegBus] mem_wdata_o;         // 待写的寄存器的数据
+    wire mem_we_o;                       // 写使能
+
     // ctrl
     wire ex_jump_flag;
     wire [`InstAddrBus] ex_jump_addr;
@@ -208,9 +218,6 @@ module xcore (
         .ex_csr_waddr(ex_csr_waddr)
     );
 
-    wire [`RegAddrBus] ex_waddr;     // 待写的寄存器的地址
-    wire [`RegBus] ex_wdata;         // 待写的寄存器的数据
-    wire ex_we;                       // 写使能
     wire ex_csr_we_o;                       // ex模块执行后的写寄存器标志
     wire [`CsrAddrBus] ex_csr_waddr_o;           // ex模块写寄存器地址
     wire [`CsrBus] ex_csr_wdata_o;         // 待写的寄存器的数据
@@ -277,9 +284,6 @@ module xcore (
         .mem_csr_wdata(mem_csr_wdata)
     );
 
-    wire [`RegAddrBus] mem_waddr_o;     // 待写的寄存器的地址
-    wire [`RegBus] mem_wdata_o;         // 待写的寄存器的数据
-    wire mem_we_o;                       // 写使能
     wire mem_csr_we_o;                       // ex模块写寄存器标志
     wire [`CsrAddrBus] mem_csr_waddr_o;           // ex模块写寄存器地址
     wire [`CsrBus] mem_csr_wdata_o;         // 待写的寄存器的数据

@@ -54,18 +54,17 @@ module gpio(
                     end
                 endcase
             end else begin
-                // // 防止在写GPIO输出时修改了数据的io的data
-
-                // // *** 添加GPIO个数需修改 *** //
-                // // 否则如果GPIO0为输出状态就维持输出
-                // if (gpio_ctrl[1:0] == 2'b10) begin
-                //     gpio_data[0] <= gpio[0];
-                // end
-                // // *** 添加GPIO个数需修改 *** //
-                // // 否则如果GPIO1为输出状态就维持输出
-                // if (gpio_ctrl[3:2] == 2'b10) begin
-                //     gpio_data[1] <= gpio[1];
-                // end
+                // 防止在写GPIO输出时修改了数据的io的data
+                // *** 添加GPIO个数需修改 *** //
+                // 否则如果GPIO0为输出状态就维持输出
+                if (gpio_ctrl[1:0] == 2'b10) begin
+                    gpio_data[0] <= gpio[0];
+                end
+                // *** 添加GPIO个数需修改 *** //
+                // 否则如果GPIO1为输出状态就维持输出
+                if (gpio_ctrl[3:2] == 2'b10) begin
+                    gpio_data[1] <= gpio[1];
+                end
             end
         end
     end
