@@ -16,7 +16,7 @@ module rom(
 
     always @ (posedge clk) begin
         if (we == `WriteEnable) begin
-            _rom[wraddr[`RomNumLog2-1:2]] <= wdata;
+            _rom[wraddr[31:2]] <= wdata;
         end
     end
 
@@ -24,7 +24,7 @@ module rom(
         if (rst == `RstEnable) begin
             rdata = `ZeroWord;
         end else begin
-            rdata = _rom[wraddr[`RomNumLog2-1:2]];
+            rdata = _rom[wraddr[31:2]];
         end
     end
 
